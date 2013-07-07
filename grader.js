@@ -3,6 +3,7 @@
 var fs=require('fs');
 var program=require('commander');
 var cheerio=require('cheerio');
+var rest=require('restler');
 var HTMLFILE_DEFAULT="index.html";
 var CHECKSFILE_DEFAULT="checks.json";
 
@@ -34,14 +35,39 @@ out[checks[ii]]=present;
 return out;
 };
 
+var writeUrlContent = function(fileName, checks){
+var html2file = function(result, response){
+if(result instanceof Error){
+console.error('Error');
+}else{
+fs.writeFileSync(fileName, result);
+var checkJson=checkHtmlFile(fileName, checks);
+var outJson = JSON.stringify(checkJson, null, 4);
+console.log(outJson);
+fs.writeFileSync("w3p3_JohannaGallo.json",outJson);
+}
+};
+return html2file;
+}
+
 if(require.main==module){
 program
 .option('-c, --checks','Path to cheks.json', assertFileExists, CHECKSFILE_DEFAULT)
 .option('-f, --file','Path to index.html', assertFileExists, HTMLFILE_DEFAULT)
+.option('-u, --url','Input as url')
 .parse(process.argv);
+if(program.file){
 var checkJson = checkHtmlFile(program.file, program.checks);
 var outJson = JSON.stringify(checkJson, null, 4);
 console.log(outJson);
+fs.writeFileSync("w3p3_JohannaGallo.json", outJson);
+}else if(program.url){
+Console.log("First arg:" + program.url[0]);
+var htlm2file = writeUrlContent(program.url[0], program.checks);
+rest.get(program.url[1]).on('complete',html2file);
+}else{
+process.exit(1);
+}
 }else{
 exports.checkHtmlFile = checkHtmlFile;
 }
